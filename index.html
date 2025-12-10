@@ -1,0 +1,809 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VCML - Viral Core Motion Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            orange: '#FF4D00',
+                            dark: '#050505',
+                            card: '#111111',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Syne', 'sans-serif'],
+                    },
+                    boxShadow: {
+                        'glow': '0 0 20px rgba(255, 77, 0, 0.3)',
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'pulse-fast': 'pulse 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .text-3d {
+            text-shadow: 
+                1px 1px 0 #c23b00,
+                2px 2px 0 #c23b00,
+                3px 3px 0 #c23b00,
+                4px 4px 0 #c23b00,
+                6px 6px 0 rgba(0,0,0,0.5);
+        }
+        html { scroll-behavior: smooth; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #050505; }
+        ::-webkit-scrollbar-thumb { background: #333; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #FF4D00; }
+        
+        .scrolled-nav {
+            background-color: rgba(5, 5, 5, 0.85);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        
+        .form-input:focus {
+            border-color: #FF4D00;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(255, 77, 0, 0.1);
+        }
+
+        /* Improved Dissolve Animation */
+        .mockup-layer {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .mockup-layer.active {
+            opacity: 1;
+            pointer-events: auto;
+            z-index: 10;
+        }
+        
+        .fade-text {
+            transition: opacity 0.4s ease;
+            opacity: 1;
+        }
+        .fade-out {
+            opacity: 0;
+        }
+
+        /* Hero Floating Animation (둥실둥실 효과) */
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); } /* 위로 10px 이동 (왕복 10px 느낌) */
+        }
+        
+        .animate-float {
+            animation: float 4s ease-in-out infinite;
+        }
+
+        .hero-floating-icon {
+            position: absolute;
+            opacity: 0.8;
+            filter: drop-shadow(0 0 10px rgba(255,77,0,0.5));
+            transition: all 0.5s ease;
+            z-index: 0; /* 카드 뒤쪽에 배치되도록 */
+        }
+    </style>
+</head>
+<!-- break-keep added globally for better Korean typography -->
+<body class="bg-brand-dark text-white overflow-x-hidden font-sans transition-colors duration-300 break-keep">
+
+    <!-- Sticky Navbar -->
+    <nav id="navbar" class="fixed top-0 w-full z-50 transition-all duration-300 px-6 py-4 flex justify-between items-center border-b border-transparent">
+        <a href="#" class="text-2xl font-bold font-display tracking-tight flex items-center gap-2">
+            <i class="fas fa-bolt text-brand-orange"></i>
+            <span>VCML</span>
+        </a>
+        
+        <div class="hidden md:flex space-x-8 text-sm text-gray-400 font-medium">
+            <a href="#work" class="hover:text-brand-orange transition" data-i18n="nav_work">Work</a>
+            <a href="#services" class="hover:text-brand-orange transition" data-i18n="nav_services">Services</a>
+            <a href="#process" class="hover:text-brand-orange transition" data-i18n="nav_process">Process</a>
+            <a href="#inquiry" class="hover:text-brand-orange transition" data-i18n="nav_contact">Contact</a>
+        </div>
+
+        <button onclick="toggleLanguage()" class="border border-white/20 px-4 py-2 rounded-full text-xs font-bold hover:bg-white hover:text-black transition duration-300 flex items-center gap-2">
+            <i class="fas fa-globe"></i>
+            <span id="lang-label">KR / EN</span>
+        </button>
+    </nav>
+
+    <!-- Hero Section -->
+    <header class="relative container mx-auto px-6 pt-32 pb-32 grid lg:grid-cols-12 gap-12 items-center bg-brand-dark text-white min-h-[90vh]">
+        <!-- Left Content -->
+        <div class="lg:col-span-7 z-20">
+            <!-- Badge -->
+            <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 border border-brand-orange/50 text-brand-orange font-bold text-sm mb-6 animate-pulse">
+                <i class="fas fa-bolt"></i>
+                <span data-i18n="hero_badge">100,000+ Shorts Edited</span>
+            </div>
+
+            <h1 class="text-5xl md:text-7xl font-display font-extrabold leading-[0.95] mb-6 uppercase">
+                Make Your Content <br>
+                <span class="text-brand-orange">Go Viral</span>
+            </h1>
+            
+            <p class="text-gray-400 max-w-lg mb-8 leading-relaxed text-lg break-keep" data-i18n="hero_desc">
+                단순 편집을 넘어 10만 건 이상의 데이터를 기반으로 <strong class="text-white">빠르고 정확하게</strong> 콘텐츠를 제작합니다. 제휴 쇼핑, 퍼스널 브랜딩 전문 그룹 <strong class="text-brand-orange">VCML</strong>입니다.
+            </p>
+            
+            <div class="flex flex-wrap items-center gap-4 mb-12">
+                <a href="https://litt.ly/donghnc" target="_blank" class="bg-brand-orange text-white px-8 py-3 rounded-full font-semibold hover:bg-orange-600 transition shadow-glow flex items-center gap-2">
+                    <span data-i18n="btn_portfolio">View Portfolio</span>
+                    <i class="fas fa-external-link-alt text-sm"></i>
+                </a>
+            </div>
+
+            <div class="flex items-center gap-4">
+                <div class="flex -space-x-3">
+                    <img src="https://i.pravatar.cc/100?img=11" class="w-10 h-10 rounded-full border-2 border-brand-dark grayscale">
+                    <img src="https://i.pravatar.cc/100?img=12" class="w-10 h-10 rounded-full border-2 border-brand-dark grayscale">
+                    <img src="https://i.pravatar.cc/100?img=13" class="w-10 h-10 rounded-full border-2 border-brand-dark grayscale">
+                    <div class="w-10 h-10 rounded-full border-2 border-brand-dark bg-gray-800 flex items-center justify-center text-xs font-bold">+</div>
+                </div>
+                <div>
+                    <p class="font-bold text-xl">129</p>
+                    <p class="text-xs text-gray-500 uppercase tracking-wider" data-i18n="hero_clients">Satisfied Clients</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Visual with Random Icons -->
+        <div class="lg:col-span-5 relative h-[500px] flex items-center justify-center" id="hero-visual-area">
+            
+            <!-- Randomly Positioned Icons Container (populated via JS) -->
+            <div id="random-icons-container" class="absolute inset-0 pointer-events-none overflow-visible z-0">
+                <!-- Icons will be injected here by JS -->
+            </div>
+            
+            <div class="relative w-64 h-40 md:w-80 md:h-48 perspective-1000 z-10">
+                <!-- Card 1 (Viral Stats) -->
+                <div class="absolute top-20 left-0 w-full h-full bg-gray-900 border border-gray-700 rounded-lg p-4 transform rotate-[-10deg] shadow-2xl flex flex-col">
+                    <div class="flex justify-between items-center mb-4 border-b border-gray-700 pb-2">
+                        <span class="text-xs text-gray-400 font-mono">Analytics</span>
+                        <i class="fas fa-chart-line text-green-500"></i>
+                    </div>
+                    <div class="flex-1 flex flex-col justify-center gap-4">
+                        <div class="flex justify-between items-end">
+                            <span class="text-gray-400 text-xs">Views</span>
+                            <span class="text-white font-bold text-xl">100K+</span>
+                        </div>
+                        <div class="w-full h-2 bg-gray-700 rounded-full overflow-hidden">
+                            <div class="w-[95%] h-full bg-brand-orange"></div>
+                        </div>
+                        <div class="flex justify-between items-end">
+                            <span class="text-gray-400 text-xs">Speed</span>
+                            <span class="text-white font-bold text-sm">Fast</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 (Video File) -->
+                <div class="absolute top-[-40px] left-10 w-full h-full bg-brand-orange rounded-lg p-6 transform rotate-[10deg] shadow-2xl border-t border-orange-400 flex flex-col justify-between">
+                     <div class="flex justify-between items-center text-white">
+                        <i class="fas fa-video text-2xl"></i>
+                        <span class="text-xs font-mono opacity-80 bg-black/20 px-2 py-1 rounded">Reels / Shorts</span>
+                    </div>
+                    <div>
+                        <div class="text-white text-3xl font-bold font-display mb-1">Viral</div>
+                        <p class="text-white/80 text-xs uppercase font-bold">Content Ready</p>
+                    </div>
+                    <div class="flex gap-2 mt-2">
+                         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs"><i class="fab fa-instagram"></i></div>
+                         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs"><i class="fab fa-youtube"></i></div>
+                         <div class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center text-white text-xs"><i class="fab fa-tiktok"></i></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section id="work" class="bg-white text-black py-20">
+        <div class="container mx-auto px-6">
+            <div class="mb-12 flex items-center gap-2">
+                <span class="text-xs font-bold text-gray-500">01 / 05</span>
+                <span class="h-[1px] w-12 bg-gray-300"></span>
+                <h3 class="text-sm font-bold uppercase tracking-wide text-gray-800" data-i18n="stats_header">Performance Stats</h3>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+                <!-- Big Orange Card -->
+                <div class="md:col-span-6 bg-brand-orange rounded-3xl p-8 md:p-12 flex flex-col justify-between relative overflow-hidden group text-white">
+                    <div class="absolute top-0 right-0 p-6 opacity-20 transform group-hover:scale-110 transition duration-500">
+                        <i class="fas fa-users text-9xl text-black"></i>
+                    </div>
+                    <div class="w-10 h-10 bg-black rounded-full flex items-center justify-center text-white mb-8">
+                        <i class="fas fa-check"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-5xl md:text-7xl font-display font-bold mb-2">129</h2>
+                        <p class="text-2xl md:text-3xl font-display font-light text-white/90" data-i18n="stats_projects">Clients Met</p>
+                        <p class="mt-6 text-sm text-black/70 font-medium max-w-xs break-keep" data-i18n="stats_desc">
+                            지금까지 129명의 클라이언트와 함께 성장하며 성공적인 바이럴 결과를 만들어냈습니다.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Gray Card (Commerce) -->
+                <div class="md:col-span-3 bg-gray-100 text-black rounded-3xl p-6 flex flex-col justify-center items-center text-center border border-gray-200">
+                    <div class="w-12 h-12 bg-black rounded-full flex items-center justify-center text-white mb-4">
+                        <i class="fas fa-shopping-bag"></i>
+                    </div>
+                    <h2 class="text-2xl lg:text-3xl font-display font-bold mb-2 uppercase break-words w-full" data-i18n="stats_focus1">Commerce</h2>
+                    <p class="text-xs lg:text-sm text-gray-600 font-medium leading-tight break-keep" data-i18n="stats_sub1">Affiliate Shopping Specialized</p>
+                </div>
+
+                <!-- Dark Gray Card (Branding) -->
+                <div class="md:col-span-3 bg-gray-900 text-white rounded-3xl p-6 flex flex-col justify-center items-center text-center">
+                    <div class="w-12 h-12 bg-brand-orange rounded-full flex items-center justify-center text-white mb-4">
+                        <i class="fas fa-fingerprint"></i>
+                    </div>
+                    <h2 class="text-2xl lg:text-3xl font-display font-bold mb-2 uppercase break-words w-full" data-i18n="stats_focus2">Branding</h2>
+                    <p class="text-xs lg:text-sm text-gray-400 font-medium leading-tight break-keep" data-i18n="stats_sub2">Personal & Corporate Identity</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="bg-gray-100 text-black py-20">
+        <div class="container mx-auto px-6">
+            <div class="grid lg:grid-cols-2 gap-16 items-center">
+                <!-- List -->
+                <div>
+                    <h2 class="text-4xl md:text-5xl font-display font-bold mb-12 uppercase leading-tight">
+                        Optimized for <br> Viral Growth
+                    </h2>
+                    
+                    <div class="space-y-6">
+                        <!-- Items with Hover Logic -->
+                        <div class="group border-b border-gray-300 pb-6 hover:border-brand-orange transition cursor-pointer" onmouseenter="updateCard(0)">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-6">
+                                    <span class="text-sm text-gray-400 font-mono group-hover:text-brand-orange transition">01</span>
+                                    <h4 class="text-xl font-bold group-hover:text-brand-orange transition break-keep" data-i18n="svc_viral">Viral Content Editing</h4>
+                                </div>
+                                <i class="fas fa-fire text-gray-400 group-hover:text-brand-orange transition"></i>
+                            </div>
+                        </div>
+                        <div class="group border-b border-gray-300 pb-6 hover:border-brand-orange transition cursor-pointer" onmouseenter="updateCard(1)">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-6">
+                                    <span class="text-sm text-gray-400 font-mono group-hover:text-brand-orange transition">02</span>
+                                    <h4 class="text-xl font-bold group-hover:text-brand-orange transition break-keep" data-i18n="svc_affiliate">Affiliate Shopping Video</h4>
+                                </div>
+                                <i class="fas fa-shopping-cart text-gray-400 group-hover:text-brand-orange transition"></i>
+                            </div>
+                        </div>
+                        <div class="group border-b border-gray-300 pb-6 hover:border-brand-orange transition cursor-pointer" onmouseenter="updateCard(2)">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-6">
+                                    <span class="text-sm text-gray-400 font-mono group-hover:text-brand-orange transition">03</span>
+                                    <h4 class="text-xl font-bold group-hover:text-brand-orange transition break-keep" data-i18n="svc_branding">Personal Branding</h4>
+                                </div>
+                                <i class="fas fa-user-tie text-gray-400 group-hover:text-brand-orange transition"></i>
+                            </div>
+                        </div>
+                        <div class="group border-b border-gray-300 pb-6 hover:border-brand-orange transition cursor-pointer" onmouseenter="updateCard(3)">
+                            <div class="flex justify-between items-center">
+                                <div class="flex items-center gap-6">
+                                    <span class="text-sm text-gray-400 font-mono group-hover:text-brand-orange transition">04</span>
+                                    <h4 class="text-xl font-bold group-hover:text-brand-orange transition break-keep" data-i18n="svc_branded">Branded Content</h4>
+                                </div>
+                                <i class="fas fa-ad text-gray-400 group-hover:text-brand-orange transition"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Interactive UI Mockup (Stacked Layers) -->
+                <div class="relative">
+                    <div class="bg-white rounded-2xl p-4 text-black shadow-xl max-w-md mx-auto relative z-10 border border-gray-200">
+                        <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-2">
+                            <div class="flex gap-2">
+                                <div class="w-3 h-3 rounded-full bg-red-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-yellow-400"></div>
+                                <div class="w-3 h-3 rounded-full bg-green-400"></div>
+                            </div>
+                            <span id="card-header" class="text-xs font-bold text-gray-400 fade-text">VIRAL CUT</span>
+                        </div>
+                        
+                        <!-- Stacked Iframes Container -->
+                        <div class="bg-black aspect-[9/16] w-2/3 mx-auto rounded-lg mb-4 relative overflow-hidden group border border-gray-800">
+                             <!-- Layer 0 -->
+                             <div class="mockup-layer active" id="layer-0">
+                                <iframe class="w-full h-full" src="https://www.youtube.com/embed/S2C_Puw42Hk?autoplay=1&mute=1&controls=0&loop=1&playlist=S2C_Puw42Hk" title="Viral" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+                             </div>
+                             <!-- Layer 1 -->
+                             <div class="mockup-layer" id="layer-1">
+                                <iframe class="w-full h-full" src="https://www.youtube.com/embed/S2C_Puw42Hk?autoplay=1&mute=1&controls=0&loop=1&playlist=S2C_Puw42Hk" title="Shopping" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                             </div>
+                             <!-- Layer 2 -->
+                             <div class="mockup-layer" id="layer-2">
+                                <iframe class="w-full h-full" src="https://www.youtube.com/embed/S2C_Puw42Hk?autoplay=1&mute=1&controls=0&loop=1&playlist=S2C_Puw42Hk" title="Branding" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                             </div>
+                             <!-- Layer 3 -->
+                             <div class="mockup-layer" id="layer-3">
+                                <iframe class="w-full h-full" src="https://www.youtube.com/embed/S2C_Puw42Hk?autoplay=1&mute=1&controls=0&loop=1&playlist=S2C_Puw42Hk" title="Content" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe>
+                             </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="flex gap-1">
+                                <div class="h-6 w-1/4 bg-brand-orange rounded text-[8px] text-white flex items-center px-1">Cut_01</div>
+                                <div class="h-6 w-1/3 bg-gray-600 rounded text-[8px] text-white flex items-center px-1">Video_Main</div>
+                                <div class="h-6 w-1/5 bg-black rounded text-[8px] text-white flex items-center px-1">End</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-full h-full bg-brand-orange/20 blur-3xl -z-10 rounded-full"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Process Section -->
+    <section id="process" class="bg-white text-black py-20">
+        <div class="container mx-auto px-6 grid lg:grid-cols-2 gap-12 items-center">
+             <div class="order-2 lg:order-1 relative flex justify-center">
+                 <div class="relative w-64 h-80">
+                    <div class="absolute top-0 right-0 w-full h-full bg-gray-100 rounded-2xl p-6 shadow-xl transform rotate-6 border border-gray-200 flex flex-col items-center justify-center">
+                         <i class="fab fa-instagram text-6xl text-pink-600 mb-4"></i>
+                         <p class="font-bold text-lg">Reels</p>
+                         <p class="text-xs text-gray-500">Viral Short Form</p>
+                    </div>
+                    <div class="absolute top-4 left-[-20px] w-full h-full bg-brand-orange rounded-2xl p-6 shadow-2xl transform -rotate-6 border border-orange-400 flex flex-col justify-between z-10 text-white">
+                         <div class="flex justify-between items-start">
+                             <span class="font-display font-bold text-xl">VCML</span>
+                             <i class="fas fa-thumbs-up"></i>
+                         </div>
+                         <div class="flex flex-col items-center justify-center flex-1">
+                            <i class="fas fa-bullhorn text-5xl mb-4"></i>
+                            <p class="font-bold text-xl">Marketing</p>
+                            <p class="text-xs opacity-80">High Conversion</p>
+                         </div>
+                    </div>
+                 </div>
+             </div>
+             
+             <div class="order-1 lg:order-2">
+                <h5 class="text-brand-orange text-sm font-bold mb-4 uppercase" data-i18n="process_subtitle">Workflow</h5>
+                <h2 class="text-4xl md:text-5xl font-display font-bold mb-8 uppercase leading-tight">
+                    Effective <br>Communication
+                </h2>
+                
+                <ul class="space-y-6 mb-8">
+                    <li class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-brand-orange text-white text-sm font-bold flex items-center justify-center shrink-0 mt-1">1</div>
+                        <div>
+                            <h4 class="font-bold text-lg mb-1 break-keep" data-i18n="step1_title">Target Analysis</h4>
+                            <p class="text-gray-600 text-sm break-keep" data-i18n="step1_desc">콘텐츠의 주 시청층과 플랫폼(인스타/유튜브 등) 특성에 맞는 기획을 제안합니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-gray-900 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-1">2</div>
+                        <div>
+                            <h4 class="font-bold text-lg mb-1 break-keep" data-i18n="step2_title">Viral Editing</h4>
+                            <p class="text-gray-600 text-sm break-keep" data-i18n="step2_desc">시선을 끄는 훅(Hook)과 빠른 템포의 컷 편집으로 이탈률을 최소화합니다.</p>
+                        </div>
+                    </li>
+                    <li class="flex items-start gap-4">
+                        <div class="w-8 h-8 rounded-full bg-gray-900 text-white text-sm font-bold flex items-center justify-center shrink-0 mt-1">3</div>
+                        <div>
+                            <h4 class="font-bold text-lg mb-1 break-keep" data-i18n="step3_title">Feedback & Delivery</h4>
+                            <p class="text-gray-600 text-sm break-keep" data-i18n="step3_desc">피드백 반영 후 최종 플랫폼 최적화 포맷으로 납품합니다.</p>
+                        </div>
+                    </li>
+                </ul>
+
+                <a href="mailto:id0089@naver.com" class="bg-black text-white px-8 py-3 rounded-full font-semibold hover:bg-gray-800 transition inline-block" data-i18n="btn_contact">
+                    Contact VCML
+                </a>
+             </div>
+        </div>
+    </section>
+
+    <!-- Software Skills Grid -->
+    <section class="bg-gray-100 text-black py-20">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col md:flex-row justify-between items-end mb-12">
+                <div>
+                    <span class="text-xs text-brand-orange font-bold block mb-2">TOOLS & SOFTWARE</span>
+                    <h2 class="text-4xl font-display font-bold uppercase max-w-md">Professional Tools</h2>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div class="bg-white rounded-3xl flex flex-col items-center justify-center p-8 hover:shadow-lg transition duration-300 gap-4">
+                    <div class="w-16 h-16 bg-[#00005b] rounded-lg flex items-center justify-center text-[#9999ff] font-bold text-2xl border border-gray-200">Pr</div>
+                    <span class="font-bold">Premiere Pro</span>
+                </div>
+                
+                <div class="bg-white rounded-3xl flex flex-col items-center justify-center p-8 hover:shadow-lg transition duration-300 gap-4">
+                     <div class="w-16 h-16 bg-[#00005b] rounded-lg flex items-center justify-center text-[#d299ff] font-bold text-2xl border border-gray-200">Ae</div>
+                     <span class="font-bold">After Effects</span>
+                </div>
+
+                <div class="bg-white rounded-3xl flex flex-col items-center justify-center p-8 hover:shadow-lg transition duration-300 gap-4">
+                    <div class="w-16 h-16 bg-black rounded-lg flex items-center justify-center text-white font-bold text-2xl border border-gray-200 overflow-hidden relative">
+                        <img src="https://cdn-icons-png.flaticon.com/512/10096/10096356.png" class="w-10 h-10 object-contain invert" alt="CapCut">
+                    </div>
+                    <span class="font-bold">CapCut</span>
+                </div>
+
+                <div class="bg-white rounded-3xl flex flex-col items-center justify-center p-8 hover:shadow-lg transition duration-300 gap-4">
+                    <div class="w-16 h-16 bg-gradient-to-br from-yellow-500 via-red-500 to-blue-500 rounded-lg flex items-center justify-center text-white font-bold text-2xl">
+                        <i class="fas fa-infinity"></i>
+                    </div>
+                    <span class="font-bold">DaVinci Resolve</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Growth & Community -->
+    <section id="education" class="bg-white text-black py-20">
+        <div class="container mx-auto px-6">
+            <div class="flex flex-col items-center text-center mb-12">
+                <span class="text-xs text-brand-orange font-bold block mb-2 uppercase" data-i18n="edu_subtitle">GROWTH & COMMUNITY</span>
+                <h2 class="text-4xl md:text-5xl font-display font-bold uppercase leading-tight">Grow with VCML</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Education Card -->
+                <div class="group border border-gray-200 rounded-3xl p-8 hover:border-brand-orange transition duration-300 shadow-lg relative overflow-hidden bg-gray-50 flex flex-col h-full">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-brand-orange/10 rounded-bl-full -mr-8 -mt-8 transition group-hover:bg-brand-orange/20"></div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-black text-white rounded-full flex items-center justify-center text-xl">
+                            <i class="fas fa-graduation-cap"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold uppercase">Viral Masterclass</h3>
+                    </div>
+                    <p class="text-gray-600 mb-8 min-h-[3rem] break-keep flex-grow" data-i18n="edu_desc">
+                        실전 바이럴 편집의 모든 것. 초보자도 4주 만에 바이럴 전문가로 거듭나는 VCML만의 독보적인 커리큘럼.
+                    </p>
+                    <button class="w-full bg-black text-white py-4 rounded-xl font-bold hover:bg-brand-orange transition mt-auto" data-i18n="edu_btn">
+                        Apply for Education
+                    </button>
+                </div>
+
+                <!-- Student Portfolio Card -->
+                <div class="group border border-gray-200 rounded-3xl p-8 hover:border-brand-orange transition duration-300 shadow-lg relative overflow-hidden bg-gray-50 flex flex-col h-full">
+                    <div class="absolute top-0 right-0 w-32 h-32 bg-gray-200 rounded-bl-full -mr-8 -mt-8 transition group-hover:bg-gray-300"></div>
+                    <div class="flex items-center gap-4 mb-6">
+                        <div class="w-12 h-12 bg-white border border-gray-300 text-black rounded-full flex items-center justify-center text-xl">
+                            <i class="fas fa-upload"></i>
+                        </div>
+                        <h3 class="text-2xl font-bold uppercase">Student Portfolio</h3>
+                    </div>
+                    <p class="text-gray-600 mb-8 min-h-[3rem] break-keep" data-i18n="student_desc">
+                        수강생 전용 공간입니다. 포트폴리오를 등록하고 전문 에디터의 1:1 디테일 피드백을 받아보세요.
+                    </p>
+                    <button class="w-full bg-white text-black border border-black py-4 rounded-xl font-bold hover:bg-black hover:text-white transition mt-auto" data-i18n="student_btn">
+                        Submit Portfolio
+                    </button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Inquiry Form (Enhanced I18n) -->
+    <section id="inquiry" class="bg-gray-100 text-black py-20">
+        <div class="container mx-auto px-6 max-w-4xl">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl md:text-5xl font-display font-bold uppercase mb-4">Start Your Project</h2>
+                <p class="text-gray-500 break-keep" data-i18n="inquiry_desc">프로젝트에 대해 이야기해 주세요. VCML이 최적의 솔루션을 제안해 드립니다.</p>
+            </div>
+
+            <form class="bg-white p-8 md:p-12 rounded-3xl shadow-xl space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase" data-i18n="form_name">Name / Company</label>
+                        <input type="text" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4 form-input transition" placeholder="Your Name" data-i18n-placeholder="ph_name">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-2 uppercase" data-i18n="form_email">Email Address</label>
+                        <input type="email" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4 form-input transition" placeholder="email@example.com" data-i18n-placeholder="ph_email">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase" data-i18n="form_type">Project Type</label>
+                    <select class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4 form-input transition">
+                        <option data-i18n="opt_viral">Viral Content Editing</option>
+                        <option data-i18n="opt_shopping">Affiliate Shopping Video</option>
+                        <option data-i18n="opt_branding">Personal Branding</option>
+                        <option data-i18n="opt_branded">Branded Content</option>
+                        <option data-i18n="opt_other">Other</option>
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-gray-500 mb-2 uppercase" data-i18n="form_msg">Message</label>
+                    <textarea rows="4" class="w-full bg-gray-50 border border-gray-200 rounded-lg p-4 form-input transition" placeholder="Tell us about your project goals..." data-i18n-placeholder="ph_msg"></textarea>
+                </div>
+
+                <div class="text-center pt-4">
+                    <button type="button" class="bg-brand-orange text-white px-12 py-4 rounded-full font-bold hover:bg-orange-600 transition shadow-glow w-full md:w-auto" data-i18n="form_btn">
+                        Send Message
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="bg-brand-orange text-white pt-20 pb-10 overflow-hidden relative">
+        <div class="container mx-auto px-6 relative z-10">
+            <div class="text-[12vw] font-display font-extrabold leading-none tracking-tighter text-brand-orange text-3d opacity-90 select-none pointer-events-none mb-10">
+                VCML
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-10">
+                <div class="md:col-span-5">
+                    <h3 class="text-3xl font-bold uppercase mb-6" data-i18n="footer_cta">Viral Core<br>Motion Labs</h3>
+                    <a href="mailto:id0089@naver.com" class="inline-block bg-white text-brand-orange px-8 py-3 rounded-full font-bold hover:bg-black hover:text-white transition">
+                        id0089@naver.com
+                    </a>
+                </div>
+                
+                <div class="md:col-span-3">
+                    <h4 class="font-bold mb-4">Sitemap</h4>
+                    <ul class="space-y-2 text-sm text-white/80">
+                        <li><a href="#work" class="hover:text-black transition">Work</a></li>
+                        <li><a href="#services" class="hover:text-black transition">Services</a></li>
+                        <li><a href="#process" class="hover:text-black transition">Process</a></li>
+                        <li><a href="#education" class="hover:text-black transition">Education</a></li>
+                    </ul>
+                </div>
+                 <div class="md:col-span-4">
+                    <h4 class="font-bold mb-4">Connect</h4>
+                    <div class="flex gap-4">
+                        <a href="https://instagram.com/official_vcml" target="_blank" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white hover:text-brand-orange transition" title="Instagram">
+                            <i class="fab fa-instagram"></i>
+                        </a>
+                        <a href="https://litt.ly/donghnc" target="_blank" class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center hover:bg-white hover:text-brand-orange transition overflow-hidden p-2" title="Litt.ly">
+                            <img src="https://assets.litt.ly/images/logo_symbol.png" class="w-full h-full object-contain brightness-0 invert" alt="Littly" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block'">
+                            <i class="fas fa-link hidden"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="border-t border-white/20 mt-16 pt-8 flex flex-col md:flex-row justify-between text-xs text-white/60">
+                <p>&copy; 2024 Viral Core Motion Labs (VCML). All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Sticky Navbar Logic
+        const navbar = document.getElementById('navbar');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 50) {
+                navbar.classList.add('scrolled-nav');
+            } else {
+                navbar.classList.remove('scrolled-nav');
+            }
+        });
+
+        // -------------------------
+        // HERO ICON RANDOMIZATION
+        // -------------------------
+        const iconsData = [
+            { iconClass: 'fab fa-youtube', size: 'text-5xl' },
+            { iconClass: 'fab fa-instagram', size: 'text-4xl' },
+            { iconClass: 'fab fa-tiktok', size: 'text-3xl' }
+        ];
+
+        function createRandomIcons() {
+            const container = document.getElementById('random-icons-container');
+            container.innerHTML = ''; // Clear existing
+
+            // To avoid overlapping, divide area into sectors or check collisions (simple approach: sectors)
+            // Just randomized for now as requested
+            
+            iconsData.forEach((data, index) => {
+                // Wrapper for Position & Pulse
+                const wrapperDiv = document.createElement('div');
+                wrapperDiv.className = `hero-floating-icon text-brand-orange ${data.size} animate-pulse`;
+                
+                // Random Position inside the right section (which is container)
+                // Left: 0% to 90%, Top: 0% to 80% to stay visible
+                const randomTop = Math.floor(Math.random() * 80);
+                const randomLeft = Math.floor(Math.random() * 90); 
+
+                wrapperDiv.style.top = `${randomTop}%`;
+                wrapperDiv.style.left = `${randomLeft}%`;
+                // Add random delay to pulse
+                wrapperDiv.style.animationDelay = `${Math.random()}s`;
+
+                // Inner Div for Float Animation (Up/Down)
+                const floatDiv = document.createElement('div');
+                floatDiv.className = 'animate-float';
+                floatDiv.style.animationDelay = `${Math.random()}s`; // Random float start
+
+                // Inner Icon for Rotation (Fixed random rotation per session)
+                const randomRot = Math.floor(Math.random() * 40) - 20; // -20deg to 20deg
+                floatDiv.innerHTML = `<i class="${data.iconClass}" style="transform: rotate(${randomRot}deg); display: block;"></i>`;
+
+                wrapperDiv.appendChild(floatDiv);
+                container.appendChild(wrapperDiv);
+            });
+        }
+
+        // Initialize on load
+        window.addEventListener('DOMContentLoaded', createRandomIcons);
+
+
+        // -------------------------
+        // SERVICE CARD INTERACTION
+        // -------------------------
+        const headers = ["VIRAL CUT", "SHOPPING AD", "BRANDING", "BRANDED CONTENT"];
+
+        function updateCard(index) {
+            const headerEl = document.getElementById('card-header');
+            const layers = document.querySelectorAll('.mockup-layer');
+            
+            headerEl.classList.add('fade-out');
+            
+            layers.forEach(layer => layer.classList.remove('active'));
+            const targetLayer = document.getElementById(`layer-${index}`);
+            if(targetLayer) targetLayer.classList.add('active');
+
+            setTimeout(() => {
+                headerEl.innerText = headers[index];
+                headerEl.classList.remove('fade-out');
+            }, 400); 
+        }
+
+        // -------------------------
+        // TRANSLATION LOGIC
+        // -------------------------
+        const translations = {
+            en: {
+                nav_work: "Work",
+                nav_services: "Services",
+                nav_process: "Process",
+                nav_contact: "Contact",
+                hero_badge: "100,000+ Shorts Edited",
+                hero_desc: "Beyond simple editing, we produce content <strong class='text-white'>Fast & Accurately</strong> based on over 100k data points. Specialized in affiliate shopping & personal branding <strong class='text-brand-orange'>VCML</strong>.",
+                btn_portfolio: "View Portfolio",
+                hero_clients: "Satisfied Clients",
+                stats_header: "Performance Stats",
+                stats_projects: "Clients Met",
+                stats_desc: "Growing together with 129 clients, creating successful viral results.",
+                stats_focus1: "Commerce",
+                stats_sub1: "Affiliate Shopping Specialized",
+                stats_focus2: "Branding",
+                stats_sub2: "Personal & Corporate Identity",
+                svc_viral: "Viral Content Editing",
+                svc_affiliate: "Affiliate Shopping Video",
+                svc_branding: "Personal Branding",
+                svc_branded: "Branded Content",
+                process_subtitle: "Workflow",
+                step1_title: "Target Analysis",
+                step1_desc: "Proposing plans tailored to target audience and platform characteristics.",
+                step2_title: "Viral Editing",
+                step2_desc: "Minimizing drop-off rates with eye-catching hooks and fast-paced editing.",
+                step3_title: "Feedback & Delivery",
+                step3_desc: "Final delivery in platform-optimized format after feedback.",
+                btn_contact: "Contact VCML",
+                footer_cta: "Viral Core<br>Motion Labs",
+                edu_subtitle: "Growth & Community",
+                edu_desc: "Everything about real-world viral editing. VCML's unique 4-week curriculum to become a viral expert.",
+                edu_btn: "Apply for Education",
+                student_desc: "Space for students only. Register your portfolio and get 1:1 detailed feedback from professional editors.",
+                student_btn: "Submit Portfolio",
+                inquiry_desc: "Tell us about your project. VCML will propose the optimal solution.",
+                form_name: "Name / Company",
+                form_email: "Email Address",
+                form_type: "Project Type",
+                form_msg: "Message",
+                form_btn: "Send Message",
+                ph_name: "Your Name",
+                ph_email: "email@example.com",
+                ph_msg: "Tell us about your project goals...",
+                opt_viral: "Viral Content Editing",
+                opt_shopping: "Affiliate Shopping Video",
+                opt_branding: "Personal Branding",
+                opt_branded: "Branded Content",
+                opt_other: "Other"
+            },
+            ko: {
+                nav_work: "포트폴리오",
+                nav_services: "서비스",
+                nav_process: "작업 과정",
+                nav_contact: "문의하기",
+                hero_badge: "100,000건 이상의 숏폼 편집",
+                hero_desc: "단순 편집을 넘어 10만 건 이상의 데이터를 기반으로 <strong class='text-white'>빠르고 정확하게</strong> 콘텐츠를 제작합니다. 제휴 쇼핑, 퍼스널 브랜딩 전문 그룹 <strong class='text-brand-orange'>VCML</strong>입니다.",
+                btn_portfolio: "포트폴리오 보기",
+                hero_clients: "만족한 클라이언트",
+                stats_header: "성과 지표",
+                stats_projects: "클라이언트",
+                stats_desc: "지금까지 129명의 클라이언트와 함께 성장하며 성공적인 바이럴 결과를 만들어냈습니다.",
+                stats_focus1: "커머스",
+                stats_sub1: "제휴 쇼핑 영상 전문",
+                stats_focus2: "브랜딩",
+                stats_sub2: "퍼스널 & 기업 브랜딩",
+                svc_viral: "바이럴 콘텐츠 편집",
+                svc_affiliate: "제휴 쇼핑 영상",
+                svc_branding: "퍼스널 브랜딩",
+                svc_branded: "브랜디드 콘텐츠",
+                process_subtitle: "작업 과정",
+                step1_title: "타겟 분석 및 기획",
+                step1_desc: "콘텐츠의 주 시청층과 플랫폼(인스타/유튜브 등) 특성에 맞는 기획을 제안합니다.",
+                step2_title: "바이럴 컷 편집",
+                step2_desc: "시선을 끄는 훅(Hook)과 빠른 템포의 컷 편집으로 이탈률을 최소화합니다.",
+                step3_title: "피드백 및 최적화",
+                step3_desc: "피드백 반영 후 최종 플랫폼 최적화 포맷으로 납품합니다.",
+                btn_contact: "문의하기",
+                footer_cta: "Viral Core<br>Motion Labs",
+                edu_subtitle: "교육 및 커뮤니티",
+                edu_desc: "실전 바이럴 편집의 모든 것. 초보자도 4주 만에 바이럴 전문가로 거듭나는 VCML만의 독보적인 커리큘럼.",
+                edu_btn: "교육 신청하기",
+                student_desc: "수강생 전용 공간입니다. 포트폴리오를 등록하고 전문 에디터의 1:1 디테일 피드백을 받아보세요.",
+                student_btn: "포트폴리오 등록",
+                inquiry_desc: "프로젝트에 대해 이야기해 주세요. VCML이 최적의 솔루션을 제안해 드립니다.",
+                form_name: "이름 / 회사명",
+                form_email: "이메일 주소",
+                form_type: "의뢰 유형",
+                form_msg: "메시지",
+                form_btn: "문의 보내기",
+                ph_name: "홍길동 / VCML",
+                ph_email: "email@example.com",
+                ph_msg: "프로젝트 목표와 예산 등을 자유롭게 적어주세요...",
+                opt_viral: "바이럴 콘텐츠 편집",
+                opt_shopping: "제휴 쇼핑 영상",
+                opt_branding: "퍼스널 브랜딩",
+                opt_branded: "브랜디드 콘텐츠",
+                opt_other: "기타 문의"
+            }
+        };
+
+        let currentLang = 'ko';
+
+        function toggleLanguage() {
+            currentLang = currentLang === 'ko' ? 'en' : 'ko';
+            document.getElementById('lang-label').innerText = currentLang === 'ko' ? 'KR / EN' : 'EN / KR';
+            updateContent();
+        }
+
+        function updateContent() {
+            const elements = document.querySelectorAll('[data-i18n]');
+            elements.forEach(el => {
+                const key = el.getAttribute('data-i18n');
+                if (translations[currentLang][key]) {
+                    el.innerHTML = translations[currentLang][key];
+                }
+            });
+
+            const placeholders = document.querySelectorAll('[data-i18n-placeholder]');
+            placeholders.forEach(el => {
+                const key = el.getAttribute('data-i18n-placeholder');
+                if (translations[currentLang][key]) {
+                    el.placeholder = translations[currentLang][key];
+                }
+            });
+        }
+    </script>
+</body>
+</html>
